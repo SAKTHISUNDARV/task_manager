@@ -75,6 +75,18 @@ function removeCompletedTasks() {
     })
     .catch(error => console.error("Error:", error));
 }
+function markTaskCompleted(taskId) {
+    fetch(`http://localhost:5000/update-task/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message); // Show success message
+        fetchTasks(); // Reload tasks after update
+    })
+    .catch(error => console.error("Error updating task:", error));
+}
 
 // Load tasks on page load
 window.onload = loadTasks;

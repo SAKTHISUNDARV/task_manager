@@ -43,6 +43,16 @@ app.post("/login", (req, res) => {
     }
   });
 });
+app.put("/update-task/:id", (req, res) => {
+  const { id } = req.params;
+  const sql = "UPDATE tasks SET status = 'Completed' WHERE id = ?";
+
+  db.query(sql, [id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json({ message: "Task status updated to Completed" });
+  });
+});
+
 app.delete("/tasks/completed", (req, res) => {
   const sql = "DELETE FROM tasks WHERE status = 'completed'";
   db.query(sql, (err, result) => {

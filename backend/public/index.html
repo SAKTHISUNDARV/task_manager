@@ -35,6 +35,35 @@
     <h2>Tasks</h2>
     <button onclick="removeCompletedTasks()">Remove Completed Tasks</button>
     <ul id="taskList"></ul>
+    <ul id="taskList"></ul>
+
+<script>
+function fetchTasks() {
+    fetch("http://localhost:5000/tasks")
+    .then(response => response.json())
+    .then(tasks => {
+        let taskList = document.getElementById("taskList");
+        taskList.innerHTML = "";
+
+        tasks.forEach(task => {
+            let li = document.createElement("li");
+            li.textContent = `${task.title} - ${task.status}`;
+
+            if (task.status === "Pending") {
+                let completeBtn = document.createElement("button");
+                completeBtn.textContent = "Mark Completed";
+                completeBtn.onclick = () => markTaskCompleted(task.id);
+                li.appendChild(completeBtn);
+            }
+
+            taskList.appendChild(li);
+        });
+    })
+    .catch(error => console.error("Error fetching tasks:", error));
+}
+
+fetchTasks(); // Load tasks on page load
+</script>
 
     <script src="script.js"></script>
 </body>
