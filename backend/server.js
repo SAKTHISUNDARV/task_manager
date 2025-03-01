@@ -43,6 +43,13 @@ app.post("/login", (req, res) => {
     }
   });
 });
+app.delete("/tasks/completed", (req, res) => {
+  const sql = "DELETE FROM tasks WHERE status = 'completed'";
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json({ message: "Completed tasks removed successfully" });
+  });
+});
 
 app.post("/add-task", (req, res) => {
   const { title, description, status } = req.body;
