@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Task Manager</h1>
+
+        <!-- Add Task -->
+        <h2>Add Task</h2>
+        <input type="text" id="taskTitle" placeholder="Task Title">
+        <input type="text" id="taskDescription" placeholder="Task Description">
+        <select id="taskStatus">
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+        </select>
+        <button onclick="addTask()">Add Task</button>
+
+        <h2>Tasks</h2>
+        <button onclick="removeCompletedTasks()">Remove Completed Tasks</button>
+        <ul id="taskList" class="task-list"></ul>
+    </div>
+
+<script>
+function fetchTasks() {
+    fetch("http://localhost:5000/tasks")
+    .then(response => response.json())
+    .then(tasks => {
+        let taskList = document.getElementById("taskList");
+        taskList.innerHTML = ""; // Clear the existing task list
+
+        tasks.forEach(task => {
+            let li = document.createElement("li");
+            li.className = `task-item ${task.status}`;
+            li.innerHTML = `
+                <span>${task.title} - ${task.status}</span>
+                <p>${task.description}</p> <!-- Display task description -->
+                <div>
+                    <button onclick="deleteTask(${task.id})">Delete</button>
+                    <select onchange="updateTaskStatus(${task.id}, this.value)">
+                        <option value="pending" ${task.status === 'pending' ? 'selected' : ''}>Pending</option>
+                        <option value="completed" ${task.status === 'completed' ? 'selected' : ''}>Completed</option>
+                    </select>
+                </div>
+            `;
+            taskList.appendChild(li);
+        });
+    })
+    .catch(error => console.error("Error fetching tasks:", error));
+}
+
+
+function addTask() {
+    const title = document.getElementById("taskTitle").value;
+    const description = document.getElementById("taskDescription").value;
+    const status = document.getElementById("taskStatus").value;
+
+    if (title && description) {
+        fetch("http://localhost:5000/add-task", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                title: title,
+                description: description,
+                status: status
+            })
+        })
+        .then(response => response.json())
+        .then(() => {
+            fetchTasks(); // Reload the task list after adding a task
+        })
+        .catch(error => console.error("Error adding task:", error));
+    } else {
+        alert("Please enter both title and description.");
+    }
+}
+
+function updateTaskStatus(taskId, newStatus) {
+    fetch(`http://localhost:5000/update-task/${taskId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(() => fetchTasks()) // Reload tasks after updating
+    .catch(error => console.error("Error marking task as completed:", error));
+}
+
+function deleteTask(taskId) {
+    fetch(`http://localhost:5000/delete-task/${taskId}`, {
+        method: "DELETE",
+    })
+    .then(() => fetchTasks()) // Reload tasks after deleting
+    .catch(error => console.error("Error deleting task:", error));
+}
+
+function removeCompletedTasks() {
+    fetch("http://localhost:5000/tasks/completed", {
+        method: "DELETE",
+    })
+    .then(() => fetchTasks()) // Reload tasks after deleting
+    .catch(error => console.error("Error removing completed tasks:", error)); 
+}
+
+fetchTasks(); // Load tasks on page load
+</script>
+
+</body>
+</html>
+                 

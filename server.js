@@ -7,6 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+
 const db = mysql.createConnection({
   host: "localhost",
   user: "root", 
@@ -22,34 +23,33 @@ db.connect((err) => {
   }
 });
 
-app.post("/register", (req, res) => {
-  const { username, password } = req.body;
-  const sql = "INSERT INTO users (username, password) VALUES (?, ?)";
-  db.query(sql, [username, password], (err, result) => {
+app.post("/add-task", (req, res) => {
+  const { title, description, status } = req.body;
+  const sql = "INSERT INTO tasks (title, description, status) VALUES (?, ?, ?)";
+  db.query(sql, [title, description, status], (err, result) => {
     if (err) return res.status(500).json(err);
-    res.json({ message: "User registered successfully" });
+    res.json({ message: "Task added successfully" });
   });
 });
 
-app.post("/login", (req, res) => {
-  const { username, password } = req.body;
-  const sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-  db.query(sql, [username, password], (err, result) => {
-    if (err) return res.status(500).json(err);
-    if (result.length > 0) {
-      res.json({ message: "Login successful" });
-    } else {
-      res.status(401).json({ message: "Invalid credentials" });
-    }
-  });
-});
 app.put("/update-task/:id", (req, res) => {
   const { id } = req.params;
-  const sql = "UPDATE tasks SET status = 'Completed' WHERE id = ?";
+  const { status } = req.body;
+  const sql = "UPDATE tasks SET status = ? WHERE id = ?";
+  
+  db.query(sql, [status, id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json({ message: "Task status updated" });
+  });
+});
 
+app.delete("/delete-task/:id", (req, res) => {
+  const { id } = req.params;
+  const sql = "DELETE FROM tasks WHERE id = ?";
+  
   db.query(sql, [id], (err, result) => {
     if (err) return res.status(500).json(err);
-    res.json({ message: "Task status updated to Completed" });
+    res.json({ message: "Task deleted" });
   });
 });
 
@@ -60,16 +60,7 @@ app.delete("/tasks/completed", (req, res) => {
     res.json({ message: "Completed tasks removed successfully" });
   });
 });
-
-app.post("/add-task", (req, res) => {
-  const { title, description, status } = req.body;
-  const sql = "INSERT INTO tasks (title, description, status) VALUES (?, ?, ?)";
-  db.query(sql, [title, description, status], (err, result) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "Task added successfully" });
-  });
-});
-
+ 
 app.get("/tasks", (req, res) => {
   db.query("SELECT * FROM tasks", (err, result) => {
     if (err) return res.status(500).json(err);
@@ -80,3 +71,4 @@ app.get("/tasks", (req, res) => {
 app.listen(5000, () => {
   console.log("Server is running on port 5000");
 });
+
